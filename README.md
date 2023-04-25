@@ -1,4 +1,8 @@
-# what is Cantor  
+# Playground for Cantor Distributed Computing Platform
+- Cantor Examples with XLang Laguange  
+- XLang Notebook
+  
+# hat is Cantor  
 An all-in-one Distributed Computing Platform for AI and IOT with  
 - Dataflow Graph,  
 - Activity,  
@@ -7,6 +11,4 @@ An all-in-one Distributed Computing Platform for AI and IOT with
 - Message Queue,  
 - Global Variables   
 ## Coding for very large scale cluster as simple as coding in a single computer 
-# Playground for Cantor  
-- Cantor Examples with XLang Laguange  
-- XLang Notebook
+
