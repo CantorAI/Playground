@@ -2,7 +2,7 @@
 - Cantor Examples with XLang Laguange  
 - XLang Notebook
   
-# hat is Cantor  
+# What is Cantor  
 An all-in-one Distributed Computing Platform for AI and IOT with  
 - Dataflow Graph,  
 - Activity,  
