@@ -1,0 +1,28 @@
+{
+  "modelConfig": {
+    "CategoryName": "Vision Model",
+    "ItemName": "Detectron2",
+    "Trainer": "Applications/detectron2/detectron_trainer.x|Detectron_Trainer"
+  },
+  "modelParameters": {
+    "train_coco_json_filepath": "../../annotations/instances_train2017.json",
+    "config_file": "configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml",
+    "weights": "detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl",
+    "num_workers": 2,
+    "batch_size": 2,
+    "learning_rate": 0.0025,
+    "max_iter": "1000",
+    "roi_batch_size": 128,
+    "roi_num_classes": 12
+  },
+  "datasetConfigs": [
+    {
+      "NodeName": "SHAWN3080TI",
+      "NodeId": "2b8c1ee83293491b908a39d3ea529e9d",
+      "Location": "D:/Test/CantorApp/Dataset/imgs",
+      "TrainingPercentage": 100.0,
+      "ValidationPercentage": 0.0,
+      "TestPercentage": 0.0
+    }
+  ]
+}

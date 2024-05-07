@@ -1,0 +1,106 @@
+
+---
+# Galaxy filter configuration
+
+Generic:
+ - initiator:
+     description: initiator module
+     uri: galaxy_forge
+     icon: images/initiator.png
+     outputs:
+        - output
+ - player:
+     description: Playback module
+     uri: galaxy_forge
+     icon: images/LyricPlayer.png
+     inputs:
+        - input
+ - dataset:
+     description: dataset module  
+     uri:  galaxy_dataset
+     designpage: dataset/DesignPage.htm
+     icon: images/dataset.png
+     outputs:
+        - output
+ - fermat:
+     desription: fermat module
+     uri: galaxy_fermat
+     designpage: fermat/DesignPage.htm
+     icon: images/fermat.png
+     inputs:
+        - input
+     outputs:
+        - output
+   
+ - tee:
+     desription: Tee module
+     uri: galaxy_forge
+     designpage: forge/DesignPage.htm
+     icon: images/tee.png
+     canAddOutputPin: True
+     inputs:
+        - name: input
+     outputs:
+        - name: output1
+        - name: output2
+Sources:
+ - IPCamera:
+     description: IP Camera for Security
+     uri:  IP_Camera
+     icon: images/IPCamera.webp
+ - Kinect/3D:
+     description: 3D Camera
+     uri:  Azure_Kinect
+     icon: images/AzureKinect.png
+ - RealSense/3D:
+     description: 3D Camera
+     uri:  Azure_Kinect
+     icon: images/RealSense.webp
+
+Vision Model:
+ - Yolo4:
+     description: Yolo4
+     uri:  Yolo4
+     icon: images/yolo4.jpg
+     trainer:  todo_training
+ - YoloV8:
+     description: YoloV8
+     uri:  Yolov8
+     icon: images/yolov8.jpg   
+ - Detectron2:
+     description: Detectron2
+     uri:  Applications/detectron2/detectron_filter.x:Detectron_Filter
+     trainer:  Applications/detectron2/detectron_trainer.x
+     icon: images/Detectron2.webp
+ - Sam:
+     description: Segment Anything from Facebook
+     uri:  Sam
+     icon: images/sam.png
+     trainer:  todo_training
+
+LLM:
+ - VideoToToken:
+     desription: Convert Video to LLM Token module
+     uri: galaxy_llmAgent
+     icon: images/yolo4.jpg
+     trainer:  todo_training
+     designpage: llmAgent/DesignPage_llm.htm
+ - llmAgent:
+     desription: Llm module
+     uri: galaxy_llmAgent
+     icon: images/apple.webp
+     designpage: llmAgent/DesignPage_llm.htm
+
+ - prompt:
+     desription: prompt module
+     uri: galaxy_llmAgent
+     icon: images/apple.webp
+     designpage: llmAgent/DesignPage_prompt.htm
+
+Health:
+ - health:
+     desription: health module
+     uri: galaxy_health
+     icon: images/apple.webp
+     designpage: health/DesignPage.htm
+

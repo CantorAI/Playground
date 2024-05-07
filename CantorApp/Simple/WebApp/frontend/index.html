@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Detection</title>
+    <!-- Importing JavaScript files -->
+    <script src="Javascript/cantorJs.js"></script>
+    <script src="Javascript/cantor.ws.js"></script>
+    <script src="Javascript/parse_dataframe.js"></script>
+    <script src="Javascript/galaxy_draw.js"></script>
+    <script src="Javascript/galaxy.js"></script>
+    <script>
+        // Global variables for pipeline operations
+        var gPipelineSendFrame = null;
+        var gPipelineRetrieveFrame = null;
+
+        //
+        // Create an instance of GalaxyDraw from galaxy_draw.js.
+        // This utility is used to draw recognition objects from the COCO dataset.
+        //
+        var galaxyDraw = new GalaxyDraw();
+
+        //
+        // This URL is for the WebSocket opened from Cantor.
+        //The port number(8080) is configured in config.yaml of Cantor.
+        //
+        var webSocketUrl = "ws://localhost:8080";
+
+        //
+        // Function to start the pipeline
+        //
+        async function startPipeline() {
+            // See backend/main.x for the definition of the "/api/pipeline_start" endpoint
+            let uri = getUrlOfHost() + "api/api/pipeline_start";
+            new CantorRequest(uri, async function (callStatus, retValues) {
+                let retArray = JSON.parse(retValues);
+                pipelineName = retArray[1];
+                //
+                // Create a GalaxyPinOp object for sending frames to the pipeline.
+                // The pin name (e.g., "Image Decoder.in.0") should match the pin defined 
+                // in the Pipeline Design.
+                // Refer to the Pipeline Design documentation to see the filter name and pin index.
+                //
+                gPipelineSendFrame = new GalaxyPinOp(pipelineName + ".Image Decoder.in.0;");
+                await gPipelineSendFrame.connect(webSocketUrl);
+
+                // Create a GalaxyPinOp object for retrieving frames from the pipeline.
+                // The pin name (e.g., "EndPoint.out.0") should match the pin defined 
+                // in the Pipeline Design.
+                // Refer to the Pipeline Design documentation to see the filter name and pin index.
+                gPipelineRetrieveFrame = new GalaxyPinOp(pipelineName + ".EndPoint.out.0;");
+                await gPipelineRetrieveFrame.connect(webSocketUrl);
+            });
+        }
+
+        // Function to stop the pipeline
+        function stopPipeline() {
+            // See backend/main.x for the definition of the "/api/pipeline_stop" endpoint
+            let uri = getUrlOfHost() + "api/api/pipeline_stop";
+            new CantorRequest(uri, function (retVal) {
+            });
+        }
+    </script>
+    <style>
+        /* CSS styles for the page layout */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        #header {
+            padding: 10px;
+            background-color: #f0f0f0;
+        }
+
+        h2 {
+            font-size: 32px;
+            margin: 0; /* Remove default margin */
+        }
+
+        h3 {
+            font-size: 16px;
+            margin: 0; /* Remove default margin */
+        }
+
+        canvas {
+            display: block; /* Remove extra space below canvas */
+            width: 100%;
+            height: calc(100% - 120px); /* Adjust based on header height including padding */
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <h2>CantorAI Image Object Detect Simple App</h2>
+        <button onclick="startPipeline()">Start Pipeline</button>
+        <button onclick="stopPipeline()">Stop Pipeline</button>
+        <h3>Please upload a picture to detect</h3>
+        <input type="file" id="imageUpload" accept="image/*">
+        <button onclick="detect()">Detect</button>
+    </div>
+    <canvas id="imageCanvas"></canvas>
+
+    <script>
+        // Script for handling image upload and detection
+        var canvas = document.getElementById('imageCanvas');
+        var ctx = canvas.getContext('2d');
+        var image = new Image();
+        var minScore = 0.8; // Minimum score for object detection
+
+        // Function to get the URL of the host
+        function getUrlOfHost() {
+            const currentURL = window.location.href;
+            const url = new URL(currentURL);
+            const host = url.hostname;
+            const port = url.port || ''; // Use an empty string if port is not specified
+            const urlWithoutPath = `${url.protocol}//${host}${port ? `:${port}` : ''}/`;
+            return urlWithoutPath;
+        }
+
+        // Function to display the uploaded image on the canvas
+        function displayImage() {
+            image.onload = function () {
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                var scale = Math.min(canvas.width / image.width, canvas.height / image.height);
+                var scaledWidth = image.width * scale;
+                var scaledHeight = image.height * scale;
+                var xOffset = (canvas.width - scaledWidth) / 2;
+                var yOffset = (canvas.height - scaledHeight) / 2;
+                ctx.drawImage(image, xOffset, yOffset, scaledWidth, scaledHeight);
+            };
+            image.src = URL.createObjectURL(event.target.files[0]);
+        }
+
+        // Function to detect objects in the uploaded image
+        async function detect() {
+            if (gPipelineSendFrame == null) {
+                alert("Pipeline not started");
+                return;
+            }
+
+            var fileInput = document.getElementById('imageUpload');
+            if (fileInput.files.length === 0) {
+                alert("No image selected");
+                return;
+            }
+
+            var file = fileInput.files[0];
+            var reader = new FileReader();
+            reader.onload = async function (event) {
+                var arrayBuffer = event.target.result;
+                var inputData = new Uint8Array(arrayBuffer);
+                await gPipelineSendFrame.push(inputData);
+                try {
+                    let result = await gPipelineRetrieveFrame.FetchReturn();
+                    if (!result) {
+                        console.error("FetchReturn returned null");
+                        return;
+                    }
+                    let [head, data] = result;
+
+                    // Decode the Uint8Array to a string
+                    let decoder = new TextDecoder('utf-8');
+                    let offset = data.byteOffset;
+                    let decodedString = decoder.decode(new Uint8Array(data.buffer, offset, data.byteLength));
+
+                    // Parse the JSON string into an object
+                    try {
+                        let jsonData = JSON.parse(decodedString);
+                        galaxyDraw.DrawObjects(canvas, jsonData, image.width, image.height, minScore);
+                        console.log(jsonData);
+                    } catch (error) {
+                        console.error("Error parsing JSON data:", error);
+                    }
+                } catch (error) {
+                    console.error("Error fetching data:", error);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        document.getElementById('imageUpload').addEventListener('change', displayImage);
+    </script>
+</body>
+</html>
