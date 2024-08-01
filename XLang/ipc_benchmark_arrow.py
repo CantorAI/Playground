@@ -10,7 +10,7 @@ import os
 SHM_NAME = "shared_memory"
 SIGNAL_FILE = "data_ready.signal"
 LENGTH = 1024 * 1024 * 1024  # 1 GB data
-SLICE_LENGTH = 1024 * 1024  # 1 MB slices
+SLICE_LENGTH = 1024 * 1024*32  # 1 MB slices
 
 # Server functions
 def prepare_data(length, slice_length, shm_name, signal_file):

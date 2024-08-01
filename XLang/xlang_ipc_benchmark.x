@@ -49,7 +49,7 @@ def main():
 
     if mode == 'server':
         register_remote_object("ipc_srv")
-        PrepareData(1024*1024*1024, 1024*1024)
+        PrepareData(1024*1024*1024, 1024*1024*32)
         # Run as server
         print("Starting as server...")
         lrpc_listen(9089,True)
